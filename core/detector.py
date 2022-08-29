@@ -10,7 +10,9 @@ warnings.filterwarnings("ignore")
 def run(domain, timeout=10):
 	try:
 		index = requests.get(f"https://{domain}", allow_redirects=True, verify=False, timeout=timeout)
-		headers = index.headers
+		headers = index.headers.get("Set-Cookie")
+
+		print(headers)
 
 		return Status(cms="none")
 
