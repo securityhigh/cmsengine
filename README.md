@@ -8,6 +8,7 @@ Install with git.
 
 ```bash
   git clone https://github.com/securityhigh/cmsengine
+  cd cmsengine
   pip3 install -r requirements.txt
 ```
     
