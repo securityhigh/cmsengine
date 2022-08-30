@@ -11,7 +11,7 @@ def main(domain):
 	cms = detector.run(domain)
 	
 	if cms.status_code == 20:
-		ok(cms.name)
+		ok(f"{cms.name}, {cms.content}")
 
 	else:
 		error(cms.status)
