@@ -7,7 +7,7 @@ from .answers import Status
 warnings.filterwarnings("ignore")
 
 
-CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart"]
+CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart", "PrestaShop"]
 HEADERS = {
 	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
 }
@@ -69,12 +69,23 @@ class Detect:
 			if "bitrix" in cookies:
 				return Status(cms="Bitrix", content="cookies")
 
+			""" PrestaShop """
+			if "prestashop" in cookies:
+				return Status(cms="PrestaShop", content="cookies")
+
 		if "X-Powered-CMS" in headers:
 			powered_cms = headers["X-Powered-CMS"]
 
 			""" Bitrix """
 			if "Bitrix" in powered_cms:
 				return Status(cms="Bitrix", content="headers")
+
+		if "Powered-By" in headers:
+			powered_cms = headers["Powered-By"]
+
+			""" PrestaShop """
+			if "PrestaShop" in powered_cms:
+				return Status(cms="PrestaShop", content="headers")
 
 		return None
 
@@ -104,14 +115,21 @@ class Detect:
 		return None
 
 	def by_unique_files(self):
-		""" OpenCart (ocStore) """
-		opencart_ico = self.request("/image/catalog/opencart.ico")
-		if opencart_ico.status_code == 200 and "icon" in opencart_ico.headers["Content-Type"]:
-			return Status(cms="OpenCart", content="unique_files")
-
+		""" CS-Cart """
 		store_closed = self.request("/store_closed.html")
 		if store_closed.status_code == 200 and "bigEntrance" in store_closed.text:
 			return Status(cms="CS-Cart", content="unique_files")
+
+		""" PrestaShop """
+		tools_js = self.request("/js/tools.js")
+		if tools_js.status_code == 200:
+			if "PrestaShop" in tools_js.text or "((!obj.value || obj.value == text2) ? text1 : text2);" in tools_js.text:
+				return Status(cms="PrestaShop", content="unique_files") 
+
+		""" OpenCart (ocStore) """
+		opencart_ico = self.request("/image/catalog/opencart.ico")
+		if opencart_ico.status_code == 200 and "icon" in opencart_ico.headers["Content-Type"] and "imunify360" not in opencart_ico.headers["Server"]:
+			return Status(cms="OpenCart", content="unique_files")
 
 		return None
 
