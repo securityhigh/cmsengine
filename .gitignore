@@ -151,7 +151,7 @@ venv.bak/
 dmypy.json
 **/__pycache__
 **/.DS_Store
-**/test*.py
+**/test.py
 **/cache
 # Pyre type checker
 .pyre/

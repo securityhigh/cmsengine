@@ -2,11 +2,12 @@
 
 import sys
 
-from core import detector
+from core.detector import Detect
 from core.message import *
 
 
 def main(domain):
+	detector = Detect()
 	cms = detector.run(domain)
 	
 	if cms.status_code == 20:
