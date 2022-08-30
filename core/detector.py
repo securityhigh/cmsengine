@@ -109,6 +109,10 @@ class Detect:
 		if opencart_ico.status_code == 200 and "icon" in opencart_ico.headers["Content-Type"]:
 			return Status(cms="OpenCart", content="unique_files")
 
+		store_closed = self.request("/store_closed.html")
+		if store_closed.status_code == 200 and "bigEntrance" in store_closed.text:
+			return Status(cms="CS-Cart", content="unique_files")
+
 		return None
 
 	def request(self, path='', redirects=True):

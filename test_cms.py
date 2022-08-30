@@ -22,7 +22,7 @@ def main(cms):
 
 					if answer.status_code == 20:
 						if answer.name == cms:
-							ok(f"{item}: {answer.name}")
+							ok(f"{item}")
 
 						else:
 							error(f"{item}: {answer.name}, Invalid CMS")
