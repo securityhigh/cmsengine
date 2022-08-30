@@ -45,11 +45,18 @@ class Detect:
 		except requests.exceptions.ConnectionError:
 			return Status(41)
 
+		except requests.exceptions.TooManyRedirects:
+			return Status(43)
+
 	def by_index_headers(self):
 		if self.index is None:
 			self.index = self.request()
 
 		headers = self.index.headers
+
+		""" Bitrix """
+		if "X-Bitrix-Composite" in headers:
+			return Status(cms="Bitrix", content="headers")
 		
 		if "Set-Cookie" in headers:
 			cookies = headers["Set-Cookie"].lower()
@@ -61,10 +68,6 @@ class Detect:
 			""" Bitrix """
 			if "bitrix" in cookies:
 				return Status(cms="Bitrix", content="cookies")
-
-		""" Bitrix """
-		if "X-Bitrix-Composite" in headers:
-			return Status(cms="Bitrix", content="headers")
 
 		if "X-Powered-CMS" in headers:
 			powered_cms = headers["X-Powered-CMS"]
@@ -81,7 +84,7 @@ class Detect:
 
 		""" OpenCart (ocStore) """
 		if "catalog/view/theme/default/stylesheet/" in self.index.text:
-			return Status(cms="OpenCart", content="by_index_page")
+			return Status(cms="OpenCart", content="index_page")
 
 		return None
 
@@ -90,7 +93,13 @@ class Detect:
 
 		""" OpenCart (ocStore) """
 		if "/admin/index.php?route=common/login" in admin.text:
-			return Status(cms="OpenCart", content="by_admin_page")
+			return Status(cms="OpenCart", content="admin_page")
+
+		""" Simpla """
+		simpla = self.request("/simpla/")
+		if "WWW-Authenticate" in simpla.headers and "Simpla" in simpla.headers["WWW-Authenticate"] \
+				or "/password.php" in simpla.url or "module=LoginAdmin" in simpla.url or simpla.status_code == 401:
+			return Status(cms="Simpla", content="admin_headers")
 
 		return None
 
@@ -98,9 +107,9 @@ class Detect:
 		""" OpenCart (ocStore) """
 		opencart_ico = self.request("/image/catalog/opencart.ico")
 		if opencart_ico.status_code == 200 and "icon" in opencart_ico.headers["Content-Type"]:
-			return Status(cms="OpenCart", content="by_unique_files")
+			return Status(cms="OpenCart", content="unique_files")
 
 		return None
 
-	def request(self, path=''):
-		return requests.get(f"https://{self.domain}{path}", allow_redirects=True, verify=False, timeout=self.timeout, headers=HEADERS)
+	def request(self, path='', redirects=True):
+		return requests.get(f"https://{self.domain}{path}", allow_redirects=redirects, verify=False, timeout=self.timeout, headers=HEADERS)
