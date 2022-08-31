@@ -33,3 +33,4 @@ If CMS is not detected:
 - CS-Cart
 - PrestaShop
 - Simpla
+- Webasyst

@@ -7,7 +7,7 @@ from .answers import Status
 warnings.filterwarnings("ignore")
 
 
-CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart", "PrestaShop"]
+CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart", "PrestaShop", "Webasyst"]
 HEADERS = {
 	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
 }
@@ -34,7 +34,7 @@ class Detect:
 			status = self.by_unique_files()  # Определение CMS по уникальным файлам
 			if status: return status
 
-			status = self.by_admin_page()  # Определегние CMS по административным панелям
+			status = self.by_admin_page()  # Определение CMS по админ-панелям
 			if status: return status
 
 			return Status(42)
@@ -97,6 +97,10 @@ class Detect:
 		if "catalog/view/theme/default/stylesheet/" in self.index.text:
 			return Status(cms="OpenCart", content="index_page")
 
+		""" Webasyst """
+		#if "/wa-data/public/site/themes/" in self.index.text:
+		#	return Status(cms="Webasyst", content="index_page")
+
 		return None
 
 	def by_admin_page(self):
@@ -131,7 +135,13 @@ class Detect:
 		if opencart_ico.status_code == 200 and "icon" in opencart_ico.headers["Content-Type"] and "imunify360" not in opencart_ico.headers["Server"]:
 			return Status(cms="OpenCart", content="unique_files")
 
+		""" Webasyst """
+		wa_php = self.request("/wa.php")
+		if wa_php.status_code == 200 and "cli only" in wa_php.text.lower():
+			return Status(cms="Webasyst", content="unique_files")
+
 		return None
 
 	def request(self, path='', redirects=True):
-		return requests.get(f"https://{self.domain}{path}", allow_redirects=redirects, verify=False, timeout=self.timeout, headers=HEADERS)
+		r = requests.get(f"http://{self.domain}{path}", allow_redirects=redirects, verify=False, timeout=self.timeout, headers=HEADERS)
+		return r
