@@ -34,3 +34,4 @@ If CMS is not detected:
 - PrestaShop
 - Simpla
 - Webasyst
+- Drupal

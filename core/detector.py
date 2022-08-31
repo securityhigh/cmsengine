@@ -7,7 +7,7 @@ from .answers import Status
 warnings.filterwarnings("ignore")
 
 
-CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart", "PrestaShop", "Webasyst"]
+CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart", "PrestaShop", "Webasyst", "Drupal"]
 HEADERS = {
 	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
 }
@@ -57,6 +57,10 @@ class Detect:
 		""" Bitrix """
 		if "X-Bitrix-Composite" in headers:
 			return Status(cms="Bitrix", content="headers")
+
+		""" Drupal """
+		if "X-Drupal-Cache" in headers or "X-Drupal-Dynamic-Cache" in headers:
+			return Status(cms="Drupal", content="headers")
 		
 		if "Set-Cookie" in headers:
 			cookies = headers["Set-Cookie"].lower()
@@ -86,6 +90,13 @@ class Detect:
 			""" PrestaShop """
 			if "PrestaShop" in powered_cms:
 				return Status(cms="PrestaShop", content="headers")
+
+		if "X-Generator" in headers:
+			generator = headers["X-Generator"].lower()
+
+			""" Drupal """
+			if "drupal" in generator:
+				return Status(cms="Drupal", content="headers")
 
 		return None
 
@@ -139,6 +150,11 @@ class Detect:
 		wa_php = self.request("/wa.php")
 		if wa_php.status_code == 200 and "cli only" in wa_php.text.lower():
 			return Status(cms="Webasyst", content="unique_files")
+
+		""" Drupal """
+		drupal_js = self.request("/misc/drupal.js")
+		if drupal_js.status_code == 200 and "var Drupal" in drupal_js.text:
+			return Status(cms="Drupal", content="unique_files")
 
 		return None
 
