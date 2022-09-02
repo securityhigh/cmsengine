@@ -7,7 +7,7 @@ from .answers import Status
 warnings.filterwarnings("ignore")
 
 
-CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart", "PrestaShop", "Webasyst", "Drupal"]
+CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart", "PrestaShop", "Webasyst", "Drupal", "WordPress"]
 HEADERS = {
 	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
 }
@@ -19,10 +19,12 @@ class Detect:
 
 		self.domain = None
 		self.index = None
+		self.web_shield = None
 
 	def run(self, domain):
 		self.domain = domain
 		self.index = None
+		self.web_shield = None
 
 		try:
 			status = self.by_index_headers()  # Определение CMS по заголовкам ответа index.php
@@ -37,7 +39,11 @@ class Detect:
 			status = self.by_admin_page()  # Определение CMS по админ-панелям
 			if status: return status
 
-			return Status(42)
+			if self.web_shield is None:
+				return Status(42)
+
+			else:
+				return Status(44, content=self.web_shield)
 
 		except requests.exceptions.Timeout:
 			return Status(40)
@@ -77,6 +83,13 @@ class Detect:
 			if "prestashop" in cookies:
 				return Status(cms="PrestaShop", content="cookies")
 
+		if "Link" in headers:
+			link = headers["Link"].lower()
+
+			""" WordPress """
+			if "/wp-json" in link:
+				return Status(cms="WordPress", content="headers")
+
 		if "X-Powered-CMS" in headers:
 			powered_cms = headers["X-Powered-CMS"]
 
@@ -98,6 +111,16 @@ class Detect:
 			if "drupal" in generator:
 				return Status(cms="Drupal", content="headers")
 
+		""" Web Shield Detect """
+		if "Server" in headers:
+			server = headers["Server"].lower()
+
+			if "imunify360" in server:
+				self.web_shield = "Inmunify360"
+
+			if "cloudflare" in server:
+				self.web_shield = "CloudFlare"
+
 		return None
 
 	def by_index_page(self):
@@ -111,6 +134,10 @@ class Detect:
 		""" Webasyst """
 		#if "/wa-data/public/site/themes/" in self.index.text:
 		#	return Status(cms="Webasyst", content="index_page")
+
+		""" WordPress """
+		if "name=\"generator\" content=\"WordPress" in self.index.text:
+			return Status(cms="WordPress", content="index_page")
 
 		return None
 
@@ -130,6 +157,11 @@ class Detect:
 		return None
 
 	def by_unique_files(self):
+		""" WordPress """
+		wpdialog_js = self.request("/wp-includes/js/wpdialog.js")
+		if wpdialog_js.status_code == 200 and "wp.wpdialog" in wpdialog_js.text:
+			return Status(cms="WordPress", content="unique_files")
+
 		""" CS-Cart """
 		store_closed = self.request("/store_closed.html")
 		if store_closed.status_code == 200 and "bigEntrance" in store_closed.text:
@@ -143,7 +175,8 @@ class Detect:
 
 		""" OpenCart (ocStore) """
 		opencart_ico = self.request("/image/catalog/opencart.ico")
-		if opencart_ico.status_code == 200 and "icon" in opencart_ico.headers["Content-Type"] and "imunify360" not in opencart_ico.headers["Server"]:
+		if opencart_ico.status_code == 200 and "icon" in opencart_ico.headers["Content-Type"] \
+			and int(opencart_ico.headers["Content-Length"]) > 500:
 			return Status(cms="OpenCart", content="unique_files")
 
 		""" Webasyst """

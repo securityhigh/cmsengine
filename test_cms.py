@@ -27,6 +27,9 @@ def main(cms):
 						else:
 							error(f"{item}: {answer.name}, Invalid CMS")
 
+					elif answer.status_code == 44:
+						info(f"{item}: {answer.status_code}, {answer.status} ({answer.content})")
+
 					elif answer.status_code == 42:
 						error(f"{item}: {answer.status_code}, {answer.status}")
 

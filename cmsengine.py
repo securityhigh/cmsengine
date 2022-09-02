@@ -12,6 +12,7 @@ def main(domain):
 	
 	if cms.status_code == 20:
 		ok(cms.name)
+		ok(cms.content)
 
 	else:
 		error(cms.status)

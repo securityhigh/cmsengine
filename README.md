@@ -35,3 +35,4 @@ If CMS is not detected:
 - Simpla
 - Webasyst
 - Drupal
+- WordPress
