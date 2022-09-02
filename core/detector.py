@@ -121,6 +121,9 @@ class Detect:
 			if "cloudflare" in server:
 				self.web_shield = "CloudFlare"
 
+			if "qrator" in server:
+				self.web_shield = "Qrator"
+
 		return None
 
 	def by_index_page(self):
@@ -151,7 +154,7 @@ class Detect:
 		""" Simpla """
 		simpla = self.request("/simpla/")
 		if "WWW-Authenticate" in simpla.headers and "Simpla" in simpla.headers["WWW-Authenticate"] \
-				or "/password.php" in simpla.url or "module=LoginAdmin" in simpla.url or simpla.status_code == 401:
+				or "/password.php" in simpla.url or "module=LoginAdmin" in simpla.url:
 			return Status(cms="Simpla", content="admin_headers")
 
 		return None

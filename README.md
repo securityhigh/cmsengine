@@ -36,3 +36,8 @@ If CMS is not detected:
 - Webasyst
 - Drupal
 - WordPress
+
+## Web shields Database
+- CloudFlare
+- Qrator
+- Imunify360
