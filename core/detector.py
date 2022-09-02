@@ -7,7 +7,7 @@ from .answers import Status
 warnings.filterwarnings("ignore")
 
 
-CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart", "PrestaShop", "Webasyst", "Drupal", "WordPress"]
+CMS = ["OpenCart", "Bitrix", "Simpla", "CS-Cart", "PrestaShop", "Webasyst", "Drupal", "WordPress", "Joomla"]
 HEADERS = {
 	"User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36"
 }
@@ -130,17 +130,23 @@ class Detect:
 		if self.index is None:
 			self.index = self.request()
 
+		text = self.index.text.lower()
+		text_noquote = text.replace('"', '')
+
 		""" OpenCart (ocStore) """
-		if "catalog/view/theme/default/stylesheet/" in self.index.text:
+		if "catalog/view/theme/default/stylesheet/" in text:
 			return Status(cms="OpenCart", content="index_page")
 
 		""" Webasyst """
-		#if "/wa-data/public/site/themes/" in self.index.text:
+		#if "/wa-data/public/site/themes/" in text:
 		#	return Status(cms="Webasyst", content="index_page")
 
 		""" WordPress """
-		if "name=\"generator\" content=\"WordPress" in self.index.text:
-			return Status(cms="WordPress", content="index_page")
+		if "name=generator content=wordpress" in text_noquote:
+			return Status(cms="WordPress", content="index_page")\
+
+		if "name=generator content=joomla" in text_noquote:
+			return Status(cms="Joomla", content="index_page")
 
 		return None
 

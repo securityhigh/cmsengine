@@ -47,4 +47,8 @@ if __name__ == "__main__":
 	if len(sys.argv) != 2:
 		die("python3 test_cms.py <CMS>")
 
-	main(sys.argv[1])
+	try:
+		main(sys.argv[1])
+
+	except KeyboardInterrupt:
+		...

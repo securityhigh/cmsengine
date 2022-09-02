@@ -36,6 +36,7 @@ If CMS is not detected:
 - Webasyst
 - Drupal
 - WordPress
+- Joomla
 
 ## Web shields Database
 - CloudFlare
